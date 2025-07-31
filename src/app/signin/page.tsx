@@ -43,7 +43,7 @@ export default function SignInPage() {
         title: "Signed In Successfully!",
         description: "Welcome back!",
       });
-      router.push("/");
+      router.push("/dashboard");
     } catch (error: any) {
       console.error("Error signing in:", error);
       let description = "There was a problem with signing you in.";

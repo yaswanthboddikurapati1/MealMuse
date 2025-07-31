@@ -1,9 +1,12 @@
 "use client";
 
+import { Suspense } from 'react';
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
-import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User as UserIcon, LogOut, Loader } from 'lucide-react';
+import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User as UserIcon, LogOut, Loader, Home as HomeIcon } from 'lucide-react';
+import { useSearchParams } from 'next/navigation'
+
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MealPlanGenerator from "@/components/meal-plan-generator";
@@ -23,7 +26,7 @@ export interface JournalEntry {
   food: string;
 }
 
-export default function Home() {
+function ServicesPage() {
   const [shoppingList, setShoppingList] = useState<string[]>(['1 tbsp olive oil', '2 cloves garlic', '1 can diced tomatoes']);
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([
     { id: 1, date: new Date().toLocaleDateString(), mood: 'Comforted', food: 'A warm bowl of tomato soup and grilled cheese.' }
@@ -32,6 +35,8 @@ export default function Home() {
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const { toast } = useToast();
   const auth = getAuth(firebaseApp);
+  const searchParams = useSearchParams()
+  const defaultTab = searchParams.get('tab') || 'meal-plan'
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -79,14 +84,22 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
       <header className="py-6 px-4 md:px-8 border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-3">
             <MealMuseLogo className="h-10 w-10 text-primary" />
             <div>
               <h1 className="text-2xl md:text-3xl font-bold font-headline text-primary">MealMuse</h1>
               <p className="text-sm text-muted-foreground">Cook what your culture craves.</p>
             </div>
-          </div>
-          <div>
+          </Link>
+          <div className="flex items-center gap-2">
+            { user && (
+               <Link href="/dashboard">
+                  <Button variant="outline">
+                    <HomeIcon className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Button>
+                </Link>
+            )}
             {isLoadingAuth ? (
               <Button variant="outline" disabled>
                 <Loader className="mr-2 h-4 w-4 animate-spin" />
@@ -110,7 +123,7 @@ export default function Home() {
       </header>
 
       <main className="flex-1 container mx-auto py-8 px-4 md:px-8">
-        <Tabs defaultValue="meal-plan" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full" value={defaultTab}>
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto md:h-12 mb-6 bg-primary/10">
             <TabsTrigger value="meal-plan" className="flex items-center gap-2 py-2"><Utensils className="h-4 w-4" />AI Meal Plan</TabsTrigger>
             <TabsTrigger value="festive-foods" className="flex items-center gap-2 py-2"><CalendarHeart className="h-4 w-4" />Festive Foods</TabsTrigger>
@@ -147,4 +160,13 @@ export default function Home() {
       </footer>
     </div>
   );
+}
+
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ServicesPage />
+    </Suspense>
+  )
 }
