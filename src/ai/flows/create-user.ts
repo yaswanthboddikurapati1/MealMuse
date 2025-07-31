@@ -13,6 +13,8 @@ import * as admin from 'firebase-admin';
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!admin.apps.length) {
+  // When running in a Google Cloud environment, the SDK will automatically
+  // detect the service account credentials.
   admin.initializeApp();
 }
 
