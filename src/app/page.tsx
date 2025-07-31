@@ -100,7 +100,10 @@ function ServicesPage() {
     if (activeTabFromUrl) {
       setActiveTab(activeTabFromUrl);
       setIsLanding(false);
-      servicesRef.current?.scrollIntoView({ behavior: 'smooth' });
+      // Use requestAnimationFrame to ensure the element is visible before scrolling
+      requestAnimationFrame(() => {
+        servicesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     } else {
         setIsLanding(true);
     }
@@ -197,14 +200,14 @@ function ServicesPage() {
 
       <main className="flex-1">
         <div ref={servicesRef} className="container mx-auto py-8 px-4 md:px-8">
-            {isLanding ? (
+            {isLanding && (
                 <div className="text-center mb-12">
                     <h1 className="text-4xl md:text-5xl font-bold font-headline text-primary mb-4">Welcome to CulinaryCanvas</h1>
                     <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
                         Your personal AI chef that blends culture, mood, and the ingredients you have into delicious, meaningful meals. Select a service to get started.
                     </p>
                 </div>
-            ) : null}
+            )}
             
             {isLanding ? (
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -274,8 +277,14 @@ function ServicesPage() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+            <Loader className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    }>
       <ServicesPage />
     </Suspense>
   )
 }
+
+    
