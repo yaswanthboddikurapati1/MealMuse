@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User } from 'lucide-react';
+import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
+import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User as UserIcon, LogOut, Loader } from 'lucide-react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MealPlanGenerator from "@/components/meal-plan-generator";
@@ -12,6 +13,8 @@ import ShoppingList from "@/components/shopping-list";
 import FoodMoodJournal from "@/components/food-mood-journal";
 import { MealMuseLogo } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { firebaseApp } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 
 export interface JournalEntry {
   id: number;
@@ -25,6 +28,35 @@ export default function Home() {
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([
     { id: 1, date: new Date().toLocaleDateString(), mood: 'Comforted', food: 'A warm bowl of tomato soup and grilled cheese.' }
   ]);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const { toast } = useToast();
+  const auth = getAuth(firebaseApp);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setIsLoadingAuth(false);
+    });
+    return () => unsubscribe();
+  }, [auth]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: "Signed Out",
+        description: "You have been successfully signed out.",
+      });
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({
+        variant: "destructive",
+        title: "Oh no!",
+        description: "There was a problem signing you out.",
+      });
+    }
+  };
 
   const addToShoppingList = (item: string) => {
     setShoppingList((prev) => [item, ...prev]);
@@ -53,12 +85,26 @@ export default function Home() {
               <p className="text-sm text-muted-foreground">Cook what your culture craves.</p>
             </div>
           </div>
-          <Link href="/signin">
-            <Button variant="outline">
-              <User className="mr-2 h-4 w-4" />
-              Sign In
-            </Button>
-          </Link>
+          <div>
+            {isLoadingAuth ? (
+              <Button variant="outline" disabled>
+                <Loader className="mr-2 h-4 w-4 animate-spin" />
+                Loading...
+              </Button>
+            ) : user ? (
+              <Button variant="outline" onClick={handleSignOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </Button>
+            ) : (
+              <Link href="/signin">
+                <Button variant="outline">
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  Sign In
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
