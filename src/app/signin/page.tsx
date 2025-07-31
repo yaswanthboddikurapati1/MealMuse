@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LogIn } from "lucide-react";
+import { LogIn, Loader } from "lucide-react";
+import { useState } from "react";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { firebaseApp } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { MealMuseLogo } from "@/components/icons";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -18,6 +23,9 @@ const formSchema = z.object({
 });
 
 export default function SignInPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -26,9 +34,30 @@ export default function SignInPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Sign in values:", values);
-    // TODO: Add authentication logic
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    try {
+      const auth = getAuth(firebaseApp);
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: "Signed In Successfully!",
+        description: "Welcome back!",
+      });
+      router.push("/");
+    } catch (error: any) {
+      console.error("Error signing in:", error);
+      let description = "There was a problem with signing you in.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        description = "Invalid email or password. Please try again.";
+      }
+      toast({
+        variant: "destructive",
+        title: "Oh no! Something went wrong.",
+        description,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -73,9 +102,18 @@ export default function SignInPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                <LogIn className="mr-2 h-4 w-4" />
-                Sign In
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                    Signing In...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Sign In
+                  </>
+                )}
               </Button>
             </form>
           </Form>
