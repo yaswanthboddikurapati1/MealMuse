@@ -2,10 +2,10 @@
 "use client";
 
 import { Suspense } from 'react';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
-import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User as UserIcon, LogOut, Loader, Home as HomeIcon } from 'lucide-react';
+import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User as UserIcon, LogOut, Loader, HomeIcon, ArrowDown } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation'
 
 
@@ -19,6 +19,8 @@ import { CulinaryCanvasLogo } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { firebaseApp } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import Image from 'next/image';
+
 
 export interface JournalEntry {
   id: number;
@@ -26,6 +28,28 @@ export interface JournalEntry {
   mood: string;
   food: string;
 }
+
+function HeroSection({ onGetStartedClick }: { onGetStartedClick: () => void }) {
+  return (
+    <section className="py-20 md:py-32 bg-gradient-to-br from-background to-amber-50">
+      <div className="container mx-auto text-center">
+        <div className="flex justify-center mb-6">
+          <CulinaryCanvasLogo className="h-20 w-20 text-primary" />
+        </div>
+        <h1 className="text-4xl md:text-6xl font-bold font-headline text-primary mb-4 animate-in fade-in slide-in-from-top-4 duration-1000">
+          Welcome to CulinaryCanvas
+        </h1>
+        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-in fade-in slide-in-from-top-4 duration-1000 delay-200">
+          Your personal AI chef that blends culture, mood, and the ingredients you have into delicious, meaningful meals.
+        </p>
+        <Button size="lg" onClick={onGetStartedClick} className="animate-in fade-in slide-in-from-top-4 duration-1000 delay-300">
+          Get Started <ArrowDown className="ml-2 h-5 w-5" />
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 
 function ServicesPage() {
   const [shoppingList, setShoppingList] = useState<string[]>(['1 tbsp olive oil', '2 cloves garlic', '1 can diced tomatoes']);
@@ -36,7 +60,10 @@ function ServicesPage() {
   const auth = getAuth(firebaseApp);
   const router = useRouter();
   const searchParams = useSearchParams()
-  const activeTab = searchParams.get('tab') || 'meal-plan'
+  const activeTabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(activeTabFromUrl || 'meal-plan');
+  
+  const servicesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Initialize with a default entry on the client to avoid hydration mismatch
@@ -44,6 +71,13 @@ function ServicesPage() {
       { id: 1, date: new Date().toLocaleDateString(), mood: 'Comforted', food: 'A warm bowl of tomato soup and grilled cheese.' }
     ]);
   }, []);
+
+  useEffect(() => {
+    if (activeTabFromUrl) {
+      setActiveTab(activeTabFromUrl);
+      servicesRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [activeTabFromUrl]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -72,7 +106,12 @@ function ServicesPage() {
   };
 
   const handleTabChange = (value: string) => {
-    router.push(`/?tab=${value}`);
+    setActiveTab(value);
+    router.push(`/?tab=${value}`, { scroll: false });
+  };
+
+  const handleGetStartedClick = () => {
+    servicesRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const addToShoppingList = (item: string) => {
@@ -133,38 +172,42 @@ function ServicesPage() {
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto py-8 px-4 md:px-8">
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto md:h-12 mb-6 bg-primary/10">
-            <TabsTrigger value="meal-plan" className="flex items-center gap-2 py-2"><Utensils className="h-4 w-4" />AI Meal Plan</TabsTrigger>
-            <TabsTrigger value="festive-foods" className="flex items-center gap-2 py-2"><CalendarHeart className="h-4 w-4" />Festive Foods</TabsTrigger>
-            <TabsTrigger value="recipe-finder" className="flex items-center gap-2 py-2"><ChefHat className="h-4 w-4" />Recipe Finder</TabsTrigger>
-            <TabsTrigger value="shopping-list" className="flex items-center gap-2 py-2"><ShoppingCart className="h-4 w-4" />Shopping List</TabsTrigger>
-            <TabsTrigger value="journal" className="flex items-center gap-2 py-2"><BookHeart className="h-4 w-4" />Food Journal</TabsTrigger>
-          </TabsList>
+      <main className="flex-1">
+        <HeroSection onGetStartedClick={handleGetStartedClick} />
 
-          <TabsContent value="meal-plan">
-            <MealPlanGenerator addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
-          </TabsContent>
-          <TabsContent value="festive-foods">
-            <FestiveFoods addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
-          </TabsContent>
-          <TabsContent value="recipe-finder">
-            <RecipeFinder addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
-          </TabsContent>
-          <TabsContent value="shopping-list">
-            <ShoppingList 
-              items={shoppingList} 
-              onRemoveItem={removeFromShoppingList} 
-              onAddItem={addToShoppingList}
-              onClearList={clearShoppingList}
-              user={user} isLoadingAuth={isLoadingAuth}
-            />
-          </TabsContent>
-          <TabsContent value="journal">
-            <FoodMoodJournal entries={journalEntries} onAddEntry={addJournalEntry} user={user} isLoadingAuth={isLoadingAuth} />
-          </TabsContent>
-        </Tabs>
+        <div ref={servicesRef} className="container mx-auto py-8 px-4 md:px-8">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto md:h-12 mb-6 bg-primary/10">
+              <TabsTrigger value="meal-plan" className="flex items-center gap-2 py-2"><Utensils className="h-4 w-4" />AI Meal Plan</TabsTrigger>
+              <TabsTrigger value="festive-foods" className="flex items-center gap-2 py-2"><CalendarHeart className="h-4 w-4" />Festive Foods</TabsTrigger>
+              <TabsTrigger value="recipe-finder" className="flex items-center gap-2 py-2"><ChefHat className="h-4 w-4" />Recipe Finder</TabsTrigger>
+              <TabsTrigger value="shopping-list" className="flex items-center gap-2 py-2"><ShoppingCart className="h-4 w-4" />Shopping List</TabsTrigger>
+              <TabsTrigger value="journal" className="flex items-center gap-2 py-2"><BookHeart className="h-4 w-4" />Food Journal</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="meal-plan">
+              <MealPlanGenerator addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
+            </TabsContent>
+            <TabsContent value="festive-foods">
+              <FestiveFoods addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
+            </TabsContent>
+            <TabsContent value="recipe-finder">
+              <RecipeFinder addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
+            </TabsContent>
+            <TabsContent value="shopping-list">
+              <ShoppingList 
+                items={shoppingList} 
+                onRemoveItem={removeFromShoppingList} 
+                onAddItem={addToShoppingList}
+                onClearList={clearShoppingList}
+                user={user} isLoadingAuth={isLoadingAuth}
+              />
+            </TabsContent>
+            <TabsContent value="journal">
+              <FoodMoodJournal entries={journalEntries} onAddEntry={addJournalEntry} user={user} isLoadingAuth={isLoadingAuth} />
+            </TabsContent>
+          </Tabs>
+        </div>
       </main>
       
       <footer className="text-center py-4 text-sm text-muted-foreground border-t border-border/50">
