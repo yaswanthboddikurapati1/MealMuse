@@ -46,6 +46,9 @@ const createUserFlow = ai.defineFlow(
       if (error.code === 'auth/email-already-exists') {
         throw new Error('A user with this email address already exists.');
       }
+      if (error.code === 'auth/invalid-password') {
+        throw new Error(error.message);
+      }
       throw new Error('An unexpected error occurred while creating the user.');
     }
   }
