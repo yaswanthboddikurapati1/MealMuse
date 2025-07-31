@@ -1,10 +1,13 @@
+
 "use client";
 
 import { useState } from "react";
+import Link from 'next/link';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Sparkles, Loader, MapPin, PlusCircle, Gift, Flame, Moon, Sun, UtensilsCrossed, BookOpen, Clock, Users } from "lucide-react";
+import { Sparkles, Loader, MapPin, PlusCircle, Gift, Flame, Moon, Sun, UtensilsCrossed, BookOpen, Clock, Users, Lock } from "lucide-react";
+import type { User } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +26,8 @@ const formSchema = z.object({
 
 type FestiveFoodsProps = {
   addToShoppingList: (item: string) => void;
+  user: User | null;
+  isLoadingAuth: boolean;
 };
 
 const festivalIcons: { [key: string]: React.ElementType } = {
@@ -45,7 +50,7 @@ const getFestivalIcon = (festivalName: string) => {
     return festivalIcons.default;
 };
 
-export default function FestiveFoods({ addToShoppingList }: FestiveFoodsProps) {
+export default function FestiveFoods({ addToShoppingList, user, isLoadingAuth }: FestiveFoodsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<SuggestFestivalMealsOutput | null>(null);
   const { toast } = useToast();
@@ -62,7 +67,10 @@ export default function FestiveFoods({ addToShoppingList }: FestiveFoodsProps) {
     },
   });
 
+  const isAuthenticated = !isLoadingAuth && user;
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!isAuthenticated) return;
     setIsLoading(true);
     setSuggestion(null);
     try {
@@ -140,14 +148,27 @@ export default function FestiveFoods({ addToShoppingList }: FestiveFoodsProps) {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" disabled={isLoading} className="w-full">
-                    {isLoading ? (
-                      <>
-                        <Loader className="mr-2 h-4 w-4 animate-spin" />
-                        Searching...
-                      </>
-                    ) : "Suggest Festive Meals"}
-                  </Button>
+                  {isAuthenticated ? (
+                    <Button type="submit" disabled={isLoading} className="w-full">
+                        {isLoading ? (
+                        <>
+                            <Loader className="mr-2 h-4 w-4 animate-spin" />
+                            Searching...
+                        </>
+                        ) : "Suggest Festive Meals"}
+                    </Button>
+                    ) : (
+                        <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
+                          <Lock className="h-6 w-6 text-muted-foreground" />
+                          <div className="flex-1">
+                              <p className="font-semibold">Sign in to get suggestions</p>
+                              <p className="text-sm text-muted-foreground">Unlock personalized culinary experiences.</p>
+                          </div>
+                          <Link href="/signin">
+                              <Button>Sign In</Button>
+                          </Link>
+                        </div>
+                    )}
                 </form>
               </Form>
             </CardContent>

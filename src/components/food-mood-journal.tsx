@@ -1,9 +1,12 @@
+
 "use client";
 
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Smile, Frown, Meh, Annoyed, Heart } from "lucide-react";
+import { Smile, Frown, Meh, Annoyed, Heart, Lock } from "lucide-react";
+import type { User } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +23,8 @@ const formSchema = z.object({
 type FoodMoodJournalProps = {
   entries: JournalEntry[];
   onAddEntry: (entry: Omit<JournalEntry, 'id' | 'date'>) => void;
+  user: User | null;
+  isLoadingAuth: boolean;
 };
 
 const moodIcons: { [key: string]: React.ElementType } = {
@@ -30,7 +35,7 @@ const moodIcons: { [key: string]: React.ElementType } = {
   Stressed: Annoyed,
 };
 
-export default function FoodMoodJournal({ entries, onAddEntry }: FoodMoodJournalProps) {
+export default function FoodMoodJournal({ entries, onAddEntry, user, isLoadingAuth }: FoodMoodJournalProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,7 +44,10 @@ export default function FoodMoodJournal({ entries, onAddEntry }: FoodMoodJournal
     },
   });
 
+  const isAuthenticated = !isLoadingAuth && user;
+
   function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!isAuthenticated) return;
     onAddEntry(values);
     form.reset({ mood: "", food: "" });
   }
@@ -58,46 +66,57 @@ export default function FoodMoodJournal({ entries, onAddEntry }: FoodMoodJournal
             <CardDescription>Log your meal and mood to connect with your food story.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="mood"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Your Mood</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+            {isAuthenticated ? (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="mood"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Your Mood</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select how you feel" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Object.keys(moodIcons).map(mood => (
+                              <SelectItem key={mood} value={mood}>{mood}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="food"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>What did you eat?</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select how you feel" />
-                          </SelectTrigger>
+                          <Textarea placeholder="Describe the meal that made you feel this way..." {...field} />
                         </FormControl>
-                        <SelectContent>
-                          {Object.keys(moodIcons).map(mood => (
-                            <SelectItem key={mood} value={mood}>{mood}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="food"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>What did you eat?</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Describe the meal that made you feel this way..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full bg-accent hover:bg-accent/90">Add to Journal</Button>
-              </form>
-            </Form>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full bg-accent hover:bg-accent/90">Add to Journal</Button>
+                </form>
+              </Form>
+            ) : (
+                <div className="flex flex-col items-center gap-2 rounded-lg bg-muted p-6 text-center">
+                    <Lock className="h-8 w-8 text-muted-foreground" />
+                    <p className="font-semibold">Sign in to start your journal</p>
+                    <p className="text-sm text-muted-foreground">Discover the connection between food and mood.</p>
+                    <Link href="/signin" className="w-full">
+                        <Button className="mt-2 w-full">Sign In</Button>
+                    </Link>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -109,7 +128,7 @@ export default function FoodMoodJournal({ entries, onAddEntry }: FoodMoodJournal
                 <CardDescription>A summary of your food journey.</CardDescription>
             </CardHeader>
             <CardContent>
-                {entries.length > 0 ? (
+                {entries.length > 0 && isAuthenticated ? (
                     <div className="flex flex-wrap gap-4">
                         {Object.entries(moodCounts).map(([mood, count]) => {
                             const Icon = moodIcons[mood] || Meh;
@@ -123,14 +142,14 @@ export default function FoodMoodJournal({ entries, onAddEntry }: FoodMoodJournal
                         })}
                     </div>
                 ) : (
-                    <p className="text-muted-foreground">Start logging to see your weekly digest!</p>
+                    <p className="text-muted-foreground">{isAuthenticated ? 'Start logging to see your weekly digest!' : 'Sign in to see your journal entries and weekly digest.'}</p>
                 )}
             </CardContent>
         </Card>
         
         <h3 className="text-2xl font-bold font-headline mt-8">Journal Entries</h3>
         <div className="space-y-4">
-        {entries.length > 0 ? (
+        {entries.length > 0 && isAuthenticated ? (
           entries.map((entry) => {
             const Icon = moodIcons[entry.mood] || Meh;
             return (
@@ -150,8 +169,8 @@ export default function FoodMoodJournal({ entries, onAddEntry }: FoodMoodJournal
           })
         ) : (
           <Card className="text-center text-muted-foreground py-12 border-dashed">
-            <p className="font-semibold">No journal entries yet.</p>
-            <p className="text-sm">Log your first meal to begin your story.</p>
+            <p className="font-semibold">{isAuthenticated ? 'No journal entries yet.' : 'Sign in to view your entries.'}</p>
+            <p className="text-sm">{isAuthenticated ? 'Log your first meal to begin your story.' : 'Your food story awaits.'}</p>
           </Card>
         )}
         </div>

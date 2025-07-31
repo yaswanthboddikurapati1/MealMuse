@@ -1,10 +1,13 @@
+
 "use client";
 
 import { useState } from "react";
+import Link from 'next/link';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ChefHat, Loader, PlusCircle, BookOpen, Clock, Users } from "lucide-react";
+import { ChefHat, Loader, PlusCircle, BookOpen, Clock, Users, Lock } from "lucide-react";
+import type { User } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,16 +21,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
-
 const formSchema = z.object({
   availableIngredients: z.string().min(2, "Please list some ingredients.").max(200),
 });
 
 type RecipeFinderProps = {
   addToShoppingList: (item: string) => void;
+  user: User | null;
+  isLoadingAuth: boolean;
 };
 
-export default function RecipeFinder({ addToShoppingList }: RecipeFinderProps) {
+export default function RecipeFinder({ addToShoppingList, user, isLoadingAuth }: RecipeFinderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [mealPlan, setMealPlan] = useState<GenerateMealPlanOutput | null>(null);
   const { toast } = useToast();
@@ -44,7 +48,10 @@ export default function RecipeFinder({ addToShoppingList }: RecipeFinderProps) {
     },
   });
 
+  const isAuthenticated = !isLoadingAuth && user;
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!isAuthenticated) return;
     setIsLoading(true);
     setMealPlan(null);
     try {
@@ -122,14 +129,27 @@ export default function RecipeFinder({ addToShoppingList }: RecipeFinderProps) {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isLoading} className="w-full md:w-auto">
-                {isLoading ? (
-                  <>
-                    <Loader className="mr-2 h-4 w-4 animate-spin" />
-                    Cooking up ideas...
-                  </>
-                ) : "Find Recipes"}
-              </Button>
+               {isAuthenticated ? (
+                    <Button type="submit" disabled={isLoading} className="w-full md:w-auto">
+                        {isLoading ? (
+                        <>
+                            <Loader className="mr-2 h-4 w-4 animate-spin" />
+                            Cooking up ideas...
+                        </>
+                        ) : "Find Recipes"}
+                    </Button>
+                ) : (
+                    <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
+                        <Lock className="h-6 w-6 text-muted-foreground" />
+                        <div className="flex-1">
+                            <p className="font-semibold">Sign in to find recipes</p>
+                            <p className="text-sm text-muted-foreground">Unlock personalized culinary experiences.</p>
+                        </div>
+                        <Link href="/signin">
+                            <Button>Sign In</Button>
+                        </Link>
+                    </div>
+                )}
             </form>
           </Form>
           

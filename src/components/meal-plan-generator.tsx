@@ -2,10 +2,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from 'next/link';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { BrainCircuit, Loader, PlusCircle, BookOpen, Clock, Users } from "lucide-react";
+import { BrainCircuit, Loader, PlusCircle, BookOpen, Clock, Users, Lock } from "lucide-react";
+import type { User } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,9 +30,11 @@ const formSchema = z.object({
 
 type MealPlanGeneratorProps = {
   addToShoppingList: (item: string) => void;
+  user: User | null;
+  isLoadingAuth: boolean;
 };
 
-export default function MealPlanGenerator({ addToShoppingList }: MealPlanGeneratorProps) {
+export default function MealPlanGenerator({ addToShoppingList, user, isLoadingAuth }: MealPlanGeneratorProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [mealPlan, setMealPlan] = useState<GenerateMealPlanOutput | null>(null);
   const { toast } = useToast();
@@ -49,7 +53,10 @@ export default function MealPlanGenerator({ addToShoppingList }: MealPlanGenerat
     },
   });
 
+  const isAuthenticated = !isLoadingAuth && user;
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!isAuthenticated) return;
     setIsLoading(true);
     setMealPlan(null);
     try {
@@ -151,14 +158,27 @@ export default function MealPlanGenerator({ addToShoppingList }: MealPlanGenerat
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isLoading} className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
-              {isLoading ? (
-                <>
-                  <Loader className="mr-2 h-4 w-4 animate-spin" />
-                  Thinking...
-                </>
-              ) : "Generate My Meal Plan"}
-            </Button>
+            {isAuthenticated ? (
+               <Button type="submit" disabled={isLoading} className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
+                {isLoading ? (
+                  <>
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                    Thinking...
+                  </>
+                ) : "Generate My Meal Plan"}
+              </Button>
+            ) : (
+                <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
+                  <Lock className="h-6 w-6 text-muted-foreground" />
+                  <div className="flex-1">
+                      <p className="font-semibold">Sign in to generate a meal plan</p>
+                      <p className="text-sm text-muted-foreground">Unlock personalized culinary experiences.</p>
+                  </div>
+                  <Link href="/signin">
+                      <Button>Sign In</Button>
+                  </Link>
+                </div>
+            )}
           </form>
         </Form>
         {isLoading && (

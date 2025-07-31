@@ -144,24 +144,25 @@ function ServicesPage() {
           </TabsList>
 
           <TabsContent value="meal-plan">
-            <MealPlanGenerator addToShoppingList={addToShoppingList} />
+            <MealPlanGenerator addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
           </TabsContent>
           <TabsContent value="festive-foods">
-            <FestiveFoods addToShoppingList={addToShoppingList} />
+            <FestiveFoods addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
           </TabsContent>
           <TabsContent value="recipe-finder">
-            <RecipeFinder addToShoppingList={addToShoppingList} />
+            <RecipeFinder addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
           </TabsContent>
           <TabsContent value="shopping-list">
             <ShoppingList 
               items={shoppingList} 
               onRemoveItem={removeFromShoppingList} 
               onAddItem={addToShoppingList}
-              onClearList={clearShoppingList} 
+              onClearList={clearShoppingList}
+              user={user} isLoadingAuth={isLoadingAuth}
             />
           </TabsContent>
           <TabsContent value="journal">
-            <FoodMoodJournal entries={journalEntries} onAddEntry={addJournalEntry} />
+            <FoodMoodJournal entries={journalEntries} onAddEntry={addJournalEntry} user={user} isLoadingAuth={isLoadingAuth} />
           </TabsContent>
         </Tabs>
       </main>
