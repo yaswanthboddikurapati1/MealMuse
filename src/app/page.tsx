@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Suspense } from 'react';
@@ -5,7 +6,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
 import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User as UserIcon, LogOut, Loader, Home as HomeIcon } from 'lucide-react';
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,8 +36,9 @@ function ServicesPage() {
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const { toast } = useToast();
   const auth = getAuth(firebaseApp);
+  const router = useRouter();
   const searchParams = useSearchParams()
-  const defaultTab = searchParams.get('tab') || 'meal-plan'
+  const activeTab = searchParams.get('tab') || 'meal-plan'
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -62,6 +64,10 @@ function ServicesPage() {
         description: "There was a problem signing you out.",
       });
     }
+  };
+
+  const handleTabChange = (value: string) => {
+    router.push(`/?tab=${value}`);
   };
 
   const addToShoppingList = (item: string) => {
@@ -123,7 +129,7 @@ function ServicesPage() {
       </header>
 
       <main className="flex-1 container mx-auto py-8 px-4 md:px-8">
-        <Tabs defaultValue={defaultTab} className="w-full" value={defaultTab}>
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto md:h-12 mb-6 bg-primary/10">
             <TabsTrigger value="meal-plan" className="flex items-center gap-2 py-2"><Utensils className="h-4 w-4" />AI Meal Plan</TabsTrigger>
             <TabsTrigger value="festive-foods" className="flex items-center gap-2 py-2"><CalendarHeart className="h-4 w-4" />Festive Foods</TabsTrigger>
