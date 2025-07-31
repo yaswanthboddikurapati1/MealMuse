@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart } from 'lucide-react';
+import Link from "next/link";
+import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User } from 'lucide-react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MealPlanGenerator from "@/components/meal-plan-generator";
@@ -10,6 +11,7 @@ import RecipeFinder from "@/components/recipe-finder";
 import ShoppingList from "@/components/shopping-list";
 import FoodMoodJournal from "@/components/food-mood-journal";
 import { MealMuseLogo } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 
 export interface JournalEntry {
   id: number;
@@ -51,6 +53,12 @@ export default function Home() {
               <p className="text-sm text-muted-foreground">Cook what your culture craves.</p>
             </div>
           </div>
+          <Link href="/signin">
+            <Button variant="outline">
+              <User className="mr-2 h-4 w-4" />
+              Sign In
+            </Button>
+          </Link>
         </div>
       </header>
 
