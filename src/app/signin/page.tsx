@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { MealMuseLogo } from "@/components/icons";
+import { CulinaryCanvasLogo } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -64,8 +64,8 @@ export default function SignInPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="absolute top-8 left-8">
         <Link href="/" className="flex items-center gap-2 text-primary hover:underline">
-          <MealMuseLogo className="h-8 w-8" />
-          <span className="font-bold text-xl">MealMuse</span>
+          <CulinaryCanvasLogo className="h-8 w-8" />
+          <span className="font-bold text-xl">CulinaryCanvas</span>
         </Link>
       </div>
       <Card className="w-full max-w-sm shadow-2xl">

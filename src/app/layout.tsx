@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'MealMuse',
-  description: 'AI-Powered Meal Planner + Cultural Calendar',
+  title: 'CulinaryCanvas',
+  description: 'Your AI Culinary Companion',
 };
 
 export default function RootLayout({

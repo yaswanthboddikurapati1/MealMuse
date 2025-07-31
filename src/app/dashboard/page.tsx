@@ -7,7 +7,7 @@ import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
 import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User as UserIcon, LogOut, Loader, ArrowRight } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
-import { MealMuseLogo } from "@/components/icons";
+import { CulinaryCanvasLogo } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
 import { firebaseApp } from "@/lib/firebase";
 
@@ -106,9 +106,9 @@ export default function DashboardPage() {
       <header className="py-6 px-4 md:px-8 border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container mx-auto flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <MealMuseLogo className="h-10 w-10 text-primary" />
+            <CulinaryCanvasLogo className="h-10 w-10 text-primary" />
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold font-headline text-primary">MealMuse</h1>
+              <h1 className="text-2xl md:text-3xl font-bold font-headline text-primary">CulinaryCanvas</h1>
               <p className="text-sm text-muted-foreground">Your Culinary Dashboard</p>
             </div>
           </Link>
