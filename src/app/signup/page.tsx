@@ -1,23 +1,30 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LogIn } from "lucide-react";
+import { UserPlus, Loader } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { MealMuseLogo } from "@/components/icons";
+import { useToast } from "@/hooks/use-toast";
+import { createUser } from "@/ai/flows/create-user";
 
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
   password: z.string().min(6, "Password must be at least 6 characters."),
 });
 
-export default function SignInPage() {
+export default function SignUpPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -26,9 +33,25 @@ export default function SignInPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Sign in values:", values);
-    // TODO: Add authentication logic
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    try {
+      await createUser(values);
+      toast({
+        title: "Account Created!",
+        description: "You have successfully signed up. Please sign in.",
+      });
+      router.push("/signin");
+    } catch (error: any) {
+      console.error("Error creating user:", error);
+      toast({
+        variant: "destructive",
+        title: "Oh no! Something went wrong.",
+        description: error.message || "There was a problem with creating your account.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -41,8 +64,8 @@ export default function SignInPage() {
       </div>
       <Card className="w-full max-w-sm shadow-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-headline">Welcome Back!</CardTitle>
-          <CardDescription>Sign in to access your meal plans and journal.</CardDescription>
+          <CardTitle className="text-2xl font-headline">Create an Account</CardTitle>
+          <CardDescription>Join MealMuse to start your culinary journey.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -73,16 +96,25 @@ export default function SignInPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                <LogIn className="mr-2 h-4 w-4" />
-                Sign In
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Sign Up
+                  </>
+                )}
               </Button>
             </form>
           </Form>
         </CardContent>
       </Card>
       <footer className="mt-8 text-sm text-muted-foreground">
-        Don't have an account? <Link href="/signup" className="underline hover:text-primary">Sign up</Link>
+        Already have an account? <Link href="/signin" className="underline hover:text-primary">Sign in</Link>
       </footer>
     </div>
   );
