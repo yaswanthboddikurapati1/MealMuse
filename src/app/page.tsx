@@ -2,7 +2,7 @@
 "use client";
 
 import { Suspense } from 'react';
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
 import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User as UserIcon, LogOut, Loader, HomeIcon, ArrowRight } from 'lucide-react';
@@ -19,7 +19,6 @@ import { CulinaryCanvasLogo } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { firebaseApp } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
-import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 
@@ -35,7 +34,7 @@ const services = [
     title: 'AI Meal Plan',
     description: 'Get personalized meal plans based on your mood and diet.',
     icon: Utensils,
-    href: '/?tab=meal-plan',
+    href: '/services?tab=meal-plan',
     color: 'text-accent',
     bgColor: 'bg-accent/10',
   },
@@ -43,7 +42,7 @@ const services = [
     title: 'Festive Foods',
     description: 'Discover dishes for current cultural celebrations near you.',
     icon: CalendarHeart,
-    href: '/?tab=festive-foods',
+    href: '/services?tab=festive-foods',
     color: 'text-primary',
     bgColor: 'bg-primary/10',
   },
@@ -51,7 +50,7 @@ const services = [
     title: 'Recipe Finder',
     description: 'Turn the ingredients you have into delicious meals.',
     icon: ChefHat,
-    href: '/?tab=recipe-finder',
+    href: '/services?tab=recipe-finder',
     color: 'text-blue-500',
     bgColor: 'bg-blue-500/10',
   },
@@ -59,7 +58,7 @@ const services = [
     title: 'Shopping List',
     description: 'Keep track of your grocery needs all in one place.',
     icon: ShoppingCart,
-    href: '/?tab=shopping-list',
+    href: '/services?tab=shopping-list',
     color: 'text-green-500',
     bgColor: 'bg-green-500/10',
   },
@@ -67,47 +66,18 @@ const services = [
     title: 'Food Journal',
     description: 'Connect your mood with your meals and find patterns.',
     icon: BookHeart,
-    href: '/?tab=journal',
+    href: '/services?tab=journal',
     color: 'text-purple-500',
     bgColor: 'bg-purple-500/10',
   },
 ];
 
 
-function ServicesPage() {
-  const [shoppingList, setShoppingList] = useState<string[]>(['1 tbsp olive oil', '2 cloves garlic', '1 can diced tomatoes']);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+function LandingPage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  const { toast } = useToast();
   const auth = getAuth(firebaseApp);
-  const router = useRouter();
-  const searchParams = useSearchParams()
-  const activeTabFromUrl = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState(activeTabFromUrl || 'meal-plan');
-  const servicesRef = useRef<HTMLDivElement>(null);
-  const [isLanding, setIsLanding] = useState(!activeTabFromUrl);
-
-
-  useEffect(() => {
-    // Initialize with a default entry on the client to avoid hydration mismatch
-    setJournalEntries([
-      { id: 1, date: new Date().toLocaleDateString(), mood: 'Comforted', food: 'A warm bowl of tomato soup and grilled cheese.' }
-    ]);
-  }, []);
-
-  useEffect(() => {
-    if (activeTabFromUrl) {
-      setActiveTab(activeTabFromUrl);
-      setIsLanding(false);
-      // Use requestAnimationFrame to ensure the element is visible before scrolling
-      requestAnimationFrame(() => {
-        servicesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    } else {
-        setIsLanding(true);
-    }
-  }, [activeTabFromUrl]);
+  const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -120,7 +90,7 @@ function ServicesPage() {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
-      setUser(null); // Explicitly set user to null to trigger UI update
+      setUser(null);
       toast({
         title: "Signed Out",
         description: "You have been successfully signed out.",
@@ -135,30 +105,10 @@ function ServicesPage() {
     }
   };
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    router.push(`/?tab=${value}`, { scroll: false });
-  };
-
-  const addToShoppingList = (item: string) => {
-    setShoppingList((prev) => [item, ...prev]);
-  };
-
-  const removeFromShoppingList = (itemToRemove: string) => {
-    setShoppingList((prev) => prev.filter(item => item !== itemToRemove));
-  };
-  
-  const clearShoppingList = () => {
-    setShoppingList([]);
-  };
-
-  const addJournalEntry = (entry: Omit<JournalEntry, 'id' | 'date'>) => {
-    setJournalEntries(prev => [{ ...entry, id: Date.now(), date: new Date().toLocaleDateString() }, ...prev]);
-  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
-      <header className="py-6 px-4 md:px-8 border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
+       <header className="py-6 px-4 md:px-8 border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container mx-auto flex items-center justify-between">
           <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-3">
             <CulinaryCanvasLogo className="h-10 w-10 text-primary" />
@@ -187,83 +137,52 @@ function ServicesPage() {
                 Sign Out
               </Button>
             ) : (
-              <Link href="/signin">
-                <Button variant="outline">
-                  <UserIcon className="mr-2 h-4 w-4" />
-                  Sign In
-                </Button>
-              </Link>
+              <>
+                <Link href="/services">
+                    <Button variant="ghost">Services</Button>
+                </Link>
+                <Link href="/signin">
+                    <Button>
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    Sign In
+                    </Button>
+                </Link>
+              </>
             )}
           </div>
         </div>
       </header>
 
       <main className="flex-1">
-        <div ref={servicesRef} className="container mx-auto py-8 px-4 md:px-8">
-            {isLanding && (
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl md:text-5xl font-bold font-headline text-primary mb-4">Welcome to CulinaryCanvas</h1>
-                    <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-                        Your personal AI chef that blends culture, mood, and the ingredients you have into delicious, meaningful meals. Select a service to get started.
-                    </p>
-                </div>
-            )}
+        <div className="container mx-auto py-16 px-4 md:px-8">
+            <div className="text-center mb-12">
+                <h1 className="text-4xl md:text-5xl font-bold font-headline text-primary mb-4">Welcome to CulinaryCanvas</h1>
+                <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+                    Your personal AI chef that blends culture, mood, and the ingredients you have into delicious, meaningful meals. Explore our services below.
+                </p>
+            </div>
             
-            {isLanding ? (
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {services.map((service) => (
-                        <Link href={service.href} key={service.title}>
-                        <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col">
-                            <CardHeader className="flex flex-row items-start gap-4">
-                            <div className={`p-3 rounded-lg ${service.bgColor}`}>
-                                <service.icon className={`h-6 w-6 ${service.color}`} />
-                            </div>
-                            <div>
-                                <CardTitle>{service.title}</CardTitle>
-                                <CardDescription>{service.description}</CardDescription>
-                            </div>
-                            </CardHeader>
-                            <CardContent className="flex-grow"></CardContent>
-                            <div className="p-6 pt-0 flex justify-end">
-                                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                            </div>
-                        </Card>
-                        </Link>
-                    ))}
-                </div>
-            ) : (
-                 <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto md:h-12 mb-6 bg-primary/10">
-                    <TabsTrigger value="meal-plan" className="flex items-center gap-2 py-2"><Utensils className="h-4 w-4" />AI Meal Plan</TabsTrigger>
-                    <TabsTrigger value="festive-foods" className="flex items-center gap-2 py-2"><CalendarHeart className="h-4 w-4" />Festive Foods</TabsTrigger>
-                    <TabsTrigger value="recipe-finder" className="flex items-center gap-2 py-2"><ChefHat className="h-4 w-4" />Recipe Finder</TabsTrigger>
-                    <TabsTrigger value="shopping-list" className="flex items-center gap-2 py-2"><ShoppingCart className="h-4 w-4" />Shopping List</TabsTrigger>
-                    <TabsTrigger value="journal" className="flex items-center gap-2 py-2"><BookHeart className="h-4 w-4" />Food Journal</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="meal-plan">
-                    <MealPlanGenerator addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
-                    </TabsContent>
-                    <TabsContent value="festive-foods">
-                    <FestiveFoods addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
-                    </TabsContent>
-                    <TabsContent value="recipe-finder">
-                    <RecipeFinder addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
-                    </TabsContent>
-                    <TabsContent value="shopping-list">
-                    <ShoppingList 
-                        items={shoppingList} 
-                        onRemoveItem={removeFromShoppingList} 
-                        onAddItem={addToShoppingList}
-                        onClearList={clearShoppingList}
-                        user={user} isLoadingAuth={isLoadingAuth}
-                    />
-                    </TabsContent>
-                    <TabsContent value="journal">
-                    <FoodMoodJournal entries={journalEntries} onAddEntry={addJournalEntry} user={user} isLoadingAuth={isLoadingAuth} />
-                    </TabsContent>
-                </Tabs>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {services.map((service) => (
+                    <Link href={service.href} key={service.title}>
+                    <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col">
+                        <CardHeader className="flex flex-row items-start gap-4">
+                        <div className={`p-3 rounded-lg ${service.bgColor}`}>
+                            <service.icon className={`h-6 w-6 ${service.color}`} />
+                        </div>
+                        <div>
+                            <CardTitle>{service.title}</CardTitle>
+                            <CardDescription>{service.description}</CardDescription>
+                        </div>
+                        </CardHeader>
+                        <CardContent className="flex-grow"></CardContent>
+                        <div className="p-6 pt-0 flex justify-end">
+                            <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
+                    </Card>
+                    </Link>
+                ))}
+            </div>
         </div>
       </main>
       
@@ -282,9 +201,7 @@ export default function Home() {
             <Loader className="h-8 w-8 animate-spin text-primary" />
         </div>
     }>
-      <ServicesPage />
+      <LandingPage />
     </Suspense>
   )
 }
-
-    
