@@ -7,6 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { UserPlus, Loader } from "lucide-react";
 import { useState } from "react";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { firebaseApp } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +16,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { MealMuseLogo } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
-import { createUser } from "@/ai/flows/create-user";
 
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -36,7 +37,8 @@ export default function SignUpPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await createUser(values);
+      const auth = getAuth(firebaseApp);
+      await createUserWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: "Account Created!",
         description: "You have successfully signed up. Please sign in.",
@@ -44,10 +46,14 @@ export default function SignUpPage() {
       router.push("/signin");
     } catch (error: any) {
       console.error("Error creating user:", error);
+      let description = "There was a problem with creating your account.";
+      if (error.code === 'auth/email-already-in-use') {
+        description = "A user with this email address already exists.";
+      }
       toast({
         variant: "destructive",
         title: "Oh no! Something went wrong.",
-        description: error.message || "There was a problem with creating your account.",
+        description,
       });
     } finally {
       setIsLoading(false);
