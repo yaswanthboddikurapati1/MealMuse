@@ -20,7 +20,7 @@ const SuggestFestivalMealsInputSchema = z.object({
 export type SuggestFestivalMealsInput = z.infer<typeof SuggestFestivalMealsInputSchema>;
 
 const SuggestFestivalMealsOutputSchema = z.object({
-  festival: z.string().describe('The current festival being celebrated.'),
+  festival: z.string().describe('The current or an upcoming festival being celebrated.'),
   suggestedDishes: z.array(z.string()).describe('Dishes suggested for the festival.'),
 });
 
@@ -34,17 +34,19 @@ const prompt = ai.definePrompt({
   name: 'suggestFestivalMealsPrompt',
   input: {schema: SuggestFestivalMealsInputSchema},
   output: {schema: SuggestFestivalMealsOutputSchema},
-  prompt: `You are a meal suggestion AI that specializes in recommending dishes based on the user's location and current festivals.
+  prompt: `You are a meal suggestion AI that specializes in recommending dishes for festivals. Your task is to identify a festival that is either currently being celebrated or is upcoming in the next few weeks in the user's provided location.
 
-  The user is currently in {{location}}.
+Do not suggest festivals that have already passed. Focus only on current or near-future celebrations.
 
-  Identify the current festival being celebrated in that location and suggest dishes that are traditionally eaten during that festival.
+The user is currently in {{location}}.
 
-  Format your response as a JSON object matching the following schema:
-  {
-    "festival": "Name of the festival",
-    "suggestedDishes": ["Dish 1", "Dish 2", "Dish 3"]
-  }
+Based on this location and the current date, identify a relevant festival and suggest traditional dishes for it.
+
+Format your response as a JSON object matching the following schema:
+{
+  "festival": "Name of the festival",
+  "suggestedDishes": ["Dish 1", "Dish 2", "Dish 3"]
+}
 `,
 });
 
