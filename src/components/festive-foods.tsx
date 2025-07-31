@@ -185,10 +185,6 @@ export default function FestiveFoods({ addToShoppingList }: FestiveFoodsProps) {
                           <BookOpen className="mr-2 h-4 w-4" />
                           How to Prepare
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-primary hover:text-primary-foreground hover:bg-primary/90" onClick={() => addToShoppingList(dish)}>
-                          <PlusCircle className="mr-2 h-4 w-4" />
-                          Add to List
-                        </Button>
                       </div>
                     </li>
                   ))}
