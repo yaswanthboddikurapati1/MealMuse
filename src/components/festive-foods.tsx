@@ -138,8 +138,7 @@ export default function FestiveFoods({ addToShoppingList }: FestiveFoodsProps) {
                   <li key={index} className="flex justify-between items-center bg-background/50 p-3 rounded-lg border">
                     <span className="font-medium">{dish}</span>
                     <Button variant="ghost" size="sm" className="text-primary hover:text-primary-foreground hover:bg-primary/90" onClick={() => addToShoppingList(dish)}>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Add to List
+                      not working
                     </Button>
                   </li>
                 ))}

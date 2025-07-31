@@ -164,8 +164,7 @@ export default function MealPlanGenerator({ addToShoppingList }: MealPlanGenerat
                   </CardContent>
                   <CardFooter>
                     <Button variant="ghost" size="sm" className="text-accent hover:text-accent-foreground hover:bg-accent/90" onClick={() => addToShoppingList(meal)}>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Add to List
+                      not working
                     </Button>
                   </CardFooter>
                 </Card>
