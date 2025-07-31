@@ -44,6 +44,7 @@ export default function Home() {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      setUser(null); // Explicitly set user to null to trigger UI update
       toast({
         title: "Signed Out",
         description: "You have been successfully signed out.",
