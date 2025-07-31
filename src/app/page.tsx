@@ -29,9 +29,7 @@ export interface JournalEntry {
 
 function ServicesPage() {
   const [shoppingList, setShoppingList] = useState<string[]>(['1 tbsp olive oil', '2 cloves garlic', '1 can diced tomatoes']);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([
-    { id: 1, date: new Date().toLocaleDateString(), mood: 'Comforted', food: 'A warm bowl of tomato soup and grilled cheese.' }
-  ]);
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const { toast } = useToast();
@@ -39,6 +37,13 @@ function ServicesPage() {
   const router = useRouter();
   const searchParams = useSearchParams()
   const activeTab = searchParams.get('tab') || 'meal-plan'
+
+  useEffect(() => {
+    // Initialize with a default entry on the client to avoid hydration mismatch
+    setJournalEntries([
+      { id: 1, date: new Date().toLocaleDateString(), mood: 'Comforted', food: 'A warm bowl of tomato soup and grilled cheese.' }
+    ]);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
