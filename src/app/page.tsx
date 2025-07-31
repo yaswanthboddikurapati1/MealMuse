@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
-import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User as UserIcon, LogOut, Loader, HomeIcon, ArrowDown } from 'lucide-react';
+import { Utensils, CalendarHeart, ChefHat, ShoppingCart, BookHeart, User as UserIcon, LogOut, Loader, HomeIcon, ArrowRight } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation'
 
 
@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { firebaseApp } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 
 export interface JournalEntry {
@@ -29,26 +30,48 @@ export interface JournalEntry {
   food: string;
 }
 
-function HeroSection({ onGetStartedClick }: { onGetStartedClick: () => void }) {
-  return (
-    <section className="py-20 md:py-32 bg-gradient-to-br from-background to-amber-50">
-      <div className="container mx-auto text-center">
-        <div className="flex justify-center mb-6">
-          <CulinaryCanvasLogo className="h-20 w-20 text-primary" />
-        </div>
-        <h1 className="text-4xl md:text-6xl font-bold font-headline text-primary mb-4 animate-in fade-in slide-in-from-top-4 duration-1000">
-          Welcome to CulinaryCanvas
-        </h1>
-        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-in fade-in slide-in-from-top-4 duration-1000 delay-200">
-          Your personal AI chef that blends culture, mood, and the ingredients you have into delicious, meaningful meals.
-        </p>
-        <Button size="lg" onClick={onGetStartedClick} className="animate-in fade-in slide-in-from-top-4 duration-1000 delay-300">
-          Get Started <ArrowDown className="ml-2 h-5 w-5" />
-        </Button>
-      </div>
-    </section>
-  );
-}
+const services = [
+  {
+    title: 'AI Meal Plan',
+    description: 'Get personalized meal plans based on your mood and diet.',
+    icon: Utensils,
+    href: '/?tab=meal-plan',
+    color: 'text-accent',
+    bgColor: 'bg-accent/10',
+  },
+  {
+    title: 'Festive Foods',
+    description: 'Discover dishes for current cultural celebrations near you.',
+    icon: CalendarHeart,
+    href: '/?tab=festive-foods',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
+  },
+  {
+    title: 'Recipe Finder',
+    description: 'Turn the ingredients you have into delicious meals.',
+    icon: ChefHat,
+    href: '/?tab=recipe-finder',
+    color: 'text-blue-500',
+    bgColor: 'bg-blue-500/10',
+  },
+  {
+    title: 'Shopping List',
+    description: 'Keep track of your grocery needs all in one place.',
+    icon: ShoppingCart,
+    href: '/?tab=shopping-list',
+    color: 'text-green-500',
+    bgColor: 'bg-green-500/10',
+  },
+  {
+    title: 'Food Journal',
+    description: 'Connect your mood with your meals and find patterns.',
+    icon: BookHeart,
+    href: '/?tab=journal',
+    color: 'text-purple-500',
+    bgColor: 'bg-purple-500/10',
+  },
+];
 
 
 function ServicesPage() {
@@ -62,8 +85,9 @@ function ServicesPage() {
   const searchParams = useSearchParams()
   const activeTabFromUrl = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(activeTabFromUrl || 'meal-plan');
-  
   const servicesRef = useRef<HTMLDivElement>(null);
+  const [isLanding, setIsLanding] = useState(!activeTabFromUrl);
+
 
   useEffect(() => {
     // Initialize with a default entry on the client to avoid hydration mismatch
@@ -75,7 +99,10 @@ function ServicesPage() {
   useEffect(() => {
     if (activeTabFromUrl) {
       setActiveTab(activeTabFromUrl);
+      setIsLanding(false);
       servicesRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        setIsLanding(true);
     }
   }, [activeTabFromUrl]);
 
@@ -108,10 +135,6 @@ function ServicesPage() {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     router.push(`/?tab=${value}`, { scroll: false });
-  };
-
-  const handleGetStartedClick = () => {
-    servicesRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const addToShoppingList = (item: string) => {
@@ -173,40 +196,71 @@ function ServicesPage() {
       </header>
 
       <main className="flex-1">
-        <HeroSection onGetStartedClick={handleGetStartedClick} />
-
         <div ref={servicesRef} className="container mx-auto py-8 px-4 md:px-8">
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto md:h-12 mb-6 bg-primary/10">
-              <TabsTrigger value="meal-plan" className="flex items-center gap-2 py-2"><Utensils className="h-4 w-4" />AI Meal Plan</TabsTrigger>
-              <TabsTrigger value="festive-foods" className="flex items-center gap-2 py-2"><CalendarHeart className="h-4 w-4" />Festive Foods</TabsTrigger>
-              <TabsTrigger value="recipe-finder" className="flex items-center gap-2 py-2"><ChefHat className="h-4 w-4" />Recipe Finder</TabsTrigger>
-              <TabsTrigger value="shopping-list" className="flex items-center gap-2 py-2"><ShoppingCart className="h-4 w-4" />Shopping List</TabsTrigger>
-              <TabsTrigger value="journal" className="flex items-center gap-2 py-2"><BookHeart className="h-4 w-4" />Food Journal</TabsTrigger>
-            </TabsList>
+            {isLanding ? (
+                <div className="text-center mb-12">
+                    <h1 className="text-4xl md:text-5xl font-bold font-headline text-primary mb-4">Welcome to CulinaryCanvas</h1>
+                    <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+                        Your personal AI chef that blends culture, mood, and the ingredients you have into delicious, meaningful meals. Select a service to get started.
+                    </p>
+                </div>
+            ) : null}
+            
+            {isLanding ? (
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {services.map((service) => (
+                        <Link href={service.href} key={service.title}>
+                        <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col">
+                            <CardHeader className="flex flex-row items-start gap-4">
+                            <div className={`p-3 rounded-lg ${service.bgColor}`}>
+                                <service.icon className={`h-6 w-6 ${service.color}`} />
+                            </div>
+                            <div>
+                                <CardTitle>{service.title}</CardTitle>
+                                <CardDescription>{service.description}</CardDescription>
+                            </div>
+                            </CardHeader>
+                            <CardContent className="flex-grow"></CardContent>
+                            <div className="p-6 pt-0 flex justify-end">
+                                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                            </div>
+                        </Card>
+                        </Link>
+                    ))}
+                </div>
+            ) : (
+                 <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto md:h-12 mb-6 bg-primary/10">
+                    <TabsTrigger value="meal-plan" className="flex items-center gap-2 py-2"><Utensils className="h-4 w-4" />AI Meal Plan</TabsTrigger>
+                    <TabsTrigger value="festive-foods" className="flex items-center gap-2 py-2"><CalendarHeart className="h-4 w-4" />Festive Foods</TabsTrigger>
+                    <TabsTrigger value="recipe-finder" className="flex items-center gap-2 py-2"><ChefHat className="h-4 w-4" />Recipe Finder</TabsTrigger>
+                    <TabsTrigger value="shopping-list" className="flex items-center gap-2 py-2"><ShoppingCart className="h-4 w-4" />Shopping List</TabsTrigger>
+                    <TabsTrigger value="journal" className="flex items-center gap-2 py-2"><BookHeart className="h-4 w-4" />Food Journal</TabsTrigger>
+                    </TabsList>
 
-            <TabsContent value="meal-plan">
-              <MealPlanGenerator addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
-            </TabsContent>
-            <TabsContent value="festive-foods">
-              <FestiveFoods addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
-            </TabsContent>
-            <TabsContent value="recipe-finder">
-              <RecipeFinder addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
-            </TabsContent>
-            <TabsContent value="shopping-list">
-              <ShoppingList 
-                items={shoppingList} 
-                onRemoveItem={removeFromShoppingList} 
-                onAddItem={addToShoppingList}
-                onClearList={clearShoppingList}
-                user={user} isLoadingAuth={isLoadingAuth}
-              />
-            </TabsContent>
-            <TabsContent value="journal">
-              <FoodMoodJournal entries={journalEntries} onAddEntry={addJournalEntry} user={user} isLoadingAuth={isLoadingAuth} />
-            </TabsContent>
-          </Tabs>
+                    <TabsContent value="meal-plan">
+                    <MealPlanGenerator addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
+                    </TabsContent>
+                    <TabsContent value="festive-foods">
+                    <FestiveFoods addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
+                    </TabsContent>
+                    <TabsContent value="recipe-finder">
+                    <RecipeFinder addToShoppingList={addToShoppingList} user={user} isLoadingAuth={isLoadingAuth} />
+                    </TabsContent>
+                    <TabsContent value="shopping-list">
+                    <ShoppingList 
+                        items={shoppingList} 
+                        onRemoveItem={removeFromShoppingList} 
+                        onAddItem={addToShoppingList}
+                        onClearList={clearShoppingList}
+                        user={user} isLoadingAuth={isLoadingAuth}
+                    />
+                    </TabsContent>
+                    <TabsContent value="journal">
+                    <FoodMoodJournal entries={journalEntries} onAddEntry={addJournalEntry} user={user} isLoadingAuth={isLoadingAuth} />
+                    </TabsContent>
+                </Tabs>
+            )}
         </div>
       </main>
       
