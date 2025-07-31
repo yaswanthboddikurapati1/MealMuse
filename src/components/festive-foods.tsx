@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Sparkles, Loader, MapPin, PlusCircle, Gift, Flame, Moon, Sun, UtensilsCrossed, BookOpen, Clock, Users, Lock } from "lucide-react";
+import { Sparkles, Loader, MapPin, PlusCircle, Gift, Flame, Moon, Sun, UtensilsCrossed, BookOpen, Clock, Users, Lock, ArrowRight } from "lucide-react";
 import type { User } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,13 @@ const festivalIcons: { [key: string]: React.ElementType } = {
     onam: Sparkles,
     default: Sparkles,
 };
+
+const exampleFestivals = [
+    { name: 'Diwali', description: 'The festival of lights, celebrated with sweets and savory snacks.', icon: Flame, color: 'text-orange-500', bgColor: 'bg-orange-500/10' },
+    { name: 'Christmas', description: 'Celebrating with roast dinners, cookies, and festive cakes.', icon: Gift, color: 'text-red-500', bgColor: 'bg-red-500/10' },
+    { name: 'Eid al-Fitr', description: 'Marking the end of Ramadan with rich, aromatic dishes.', icon: Moon, color: 'text-sky-500', bgColor: 'bg-sky-500/10' },
+];
+
 
 const getFestivalIcon = (festivalName: string) => {
     const lowerCaseName = festivalName.toLowerCase();
@@ -133,44 +140,43 @@ export default function FestiveFoods({ addToShoppingList, user, isLoadingAuth }:
               <CardDescription>Enter your location to find dishes for current cultural celebrations.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="location"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Your Location</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., New Delhi, London" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {isAuthenticated ? (
+              {isAuthenticated ? (
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Your Location</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., New Delhi, London" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <Button type="submit" disabled={isLoading} className="w-full">
-                        {isLoading ? (
+                      {isLoading ? (
                         <>
-                            <Loader className="mr-2 h-4 w-4 animate-spin" />
-                            Searching...
+                          <Loader className="mr-2 h-4 w-4 animate-spin" />
+                          Searching...
                         </>
-                        ) : "Suggest Festive Meals"}
+                      ) : "Suggest Festive Meals"}
                     </Button>
-                    ) : (
-                        <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
-                          <Lock className="h-6 w-6 text-muted-foreground" />
-                          <div className="flex-1">
-                              <p className="font-semibold">Sign in to get suggestions</p>
-                              <p className="text-sm text-muted-foreground">Unlock personalized culinary experiences.</p>
-                          </div>
-                          <Link href="/signin">
-                              <Button>Sign In</Button>
-                          </Link>
-                        </div>
-                    )}
-                </form>
-              </Form>
+                  </form>
+                </Form>
+              ) : (
+                <div className="text-center">
+                    <p className="text-muted-foreground mb-4">Sign in to unlock personalized festival suggestions based on your location.</p>
+                    <Link href="/signin">
+                        <Button className="w-full">
+                            <Lock className="mr-2 h-4 w-4" />
+                            Sign in to Explore
+                        </Button>
+                    </Link>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -184,7 +190,7 @@ export default function FestiveFoods({ addToShoppingList, user, isLoadingAuth }:
                   </div>
               </Card>
           )}
-          {suggestion && (
+          {suggestion && isAuthenticated && (
             <Card className="h-full shadow-lg shadow-primary/20 border-primary/50 bg-gradient-to-br from-card to-primary/10 animate-in fade-in duration-500">
               <CardHeader className="flex flex-row items-start gap-4">
                   <div className="p-3 bg-primary/20 rounded-full">
@@ -213,14 +219,26 @@ export default function FestiveFoods({ addToShoppingList, user, isLoadingAuth }:
               </CardContent>
             </Card>
           )}
-          {!isLoading && !suggestion && (
-              <Card className="h-full min-h-96 flex items-center justify-center bg-muted/50">
-                  <div className="text-center text-muted-foreground p-8">
-                      <Sparkles className="mx-auto h-12 w-12 text-primary/50 mb-4" />
-                      <p className="font-semibold">Ready for a culinary adventure?</p>
-                      <p className="text-sm">Enter your location to get started.</p>
-                  </div>
-              </Card>
+          {!isLoading && (!suggestion || !isAuthenticated) && (
+             <div className="space-y-4">
+                <h3 className="text-2xl font-bold font-headline">A World of Flavors Awaits</h3>
+                <p className="text-muted-foreground">Discover traditional dishes from celebrations around the globe. Here's a little taste!</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {exampleFestivals.map((festival) => (
+                        <Card key={festival.name} className="group hover:shadow-lg transition-shadow duration-300">
+                            <CardHeader className="flex-row items-center gap-4">
+                                <div className={`p-3 rounded-lg ${festival.bgColor}`}>
+                                    <festival.icon className={`h-6 w-6 ${festival.color}`} />
+                                </div>
+                                <CardTitle className="text-lg">{festival.name}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground">{festival.description}</p>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
           )}
         </div>
       </div>
