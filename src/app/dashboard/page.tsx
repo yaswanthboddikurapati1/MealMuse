@@ -123,7 +123,7 @@ export default function DashboardPage() {
 
       <main className="flex-1 container mx-auto py-8 px-4 md:px-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold font-headline">Welcome, {user.email}!</h2>
+          <h2 className="text-3xl font-bold font-headline">Welcome, {user.displayName || user.email}!</h2>
           <p className="text-muted-foreground">What would you like to explore today?</p>
         </div>
         
