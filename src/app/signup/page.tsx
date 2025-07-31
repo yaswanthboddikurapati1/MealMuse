@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { CulinaryCanvasLogo } from "@/components/icons";
+import { MealMuseLogo } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -74,14 +74,14 @@ export default function SignUpPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="absolute top-8 left-8">
         <Link href="/" className="flex items-center gap-2 text-primary hover:underline">
-          <CulinaryCanvasLogo className="h-8 w-8" />
-          <span className="font-bold text-xl">CulinaryCanvas</span>
+          <MealMuseLogo className="h-8 w-8" />
+          <span className="font-bold text-xl">MealMuse</span>
         </Link>
       </div>
       <Card className="w-full max-w-sm shadow-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Create an Account</CardTitle>
-          <CardDescription>Join CulinaryCanvas to start your culinary journey.</CardDescription>
+          <CardDescription>Join MealMuse to start your culinary journey.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
